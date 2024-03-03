@@ -5,14 +5,15 @@ const CARRY_FLAG_BYTE_POSITION: u8 = 4;
 
 
 #[derive(Copy, Clone)]
-struct Registers {
-    a: u8,
-    b: u8,
-    c: u8,
-    d: u8,
-    e: u8,
-    h: u8,
-    l: u8
+pub struct Registers {
+    pub a: u8,
+    pub b: u8,
+    pub c: u8,
+    pub d: u8,
+    pub e: u8,
+    pub f: FlagRegister,
+    pub h: u8,
+    pub l: u8
 }
 
 impl Registers {
@@ -25,12 +26,12 @@ impl Registers {
         self.c = (value & 0x00FF) as u8;
     }
 }
-
-struct FlagRegister {
-    zero: bool,
-    subtract: bool,
-    half_carry: bool,
-    carry: bool
+#[derive(Clone, Copy)]
+pub struct FlagRegister {
+    pub zero: bool,
+    pub subtract: bool,
+    pub half_carry: bool,
+    pub carry: bool
 }
 
 impl std::convert::From<u8> for FlagRegister {
@@ -47,13 +48,5 @@ impl std::convert::From<u8> for FlagRegister {
             carry
         }
     }
-}
-
-enum Instruction {
-    ADD(ArithmeticTarget),
-}
-
-enum ArithmeticTarget {
-    A, B, C, D, E, H, L,
 }
 
