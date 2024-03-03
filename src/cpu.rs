@@ -1,11 +1,11 @@
-use crate::registers::Registers;
+use crate::instructions::{ArithmeticTarget, IncDecTarget, Instruction, JumpTest};
 use crate::memory::MemoryBus;
-use crate::instructions::{Instruction, JumpTest, ArithmeticTarget, IncDecTarget};
+use crate::registers::Registers;
 
 struct CPU {
     registers: Registers,
     pc: u16,
-    bus: MemoryBus
+    bus: MemoryBus,
 }
 
 impl CPU {
@@ -16,10 +16,15 @@ impl CPU {
             instruction_byte = self.bus.read_byte(self.pc + 1);
         }
 
-        let next_pc = if let Some(instruction) = Instruction::from_byte(instruction_byte, prefixed) {
+        let next_pc = if let Some(instruction) = Instruction::from_byte(instruction_byte, prefixed)
+        {
             self.execute(instruction)
         } else {
-            let description = format!("0x{}:{:x}", if prefixed { "cb" } else {""}, instruction_byte);
+            let description = format!(
+                "0x{}:{:x}",
+                if prefixed { "cb" } else { "" },
+                instruction_byte
+            );
             panic!("Unknown instruction found for: {}", description);
         };
 
@@ -28,13 +33,15 @@ impl CPU {
 
     fn execute(&mut self, instruction: Instruction) -> u16 {
         match instruction {
+            Instruction::NOP => self.pc.wrapping_add(1),
+
             Instruction::JP(test) => {
                 let jump_condition = match test {
                     JumpTest::NotZero => !self.registers.f.zero,
                     JumpTest::Zero => self.registers.f.zero,
                     JumpTest::NotCarry => !self.registers.f.carry,
                     JumpTest::Carry => self.registers.f.carry,
-                    JumpTest::Always => true
+                    JumpTest::Always => true,
                 };
                 self.jump(jump_condition)
             }
@@ -46,10 +53,16 @@ impl CPU {
                         self.registers.a = new_value;
                         self.pc.wrapping_add(1)
                     }
-                    _ => { /* Add more targets */ self.pc}
+                    _ => {
+                        /* Add more targets */
+                        self.pc
+                    }
                 }
             }
-            _=> { /* Support more instructions */ self.pc}
+            _ => {
+                /* Support more instructions */
+                self.pc
+            }
         }
     }
 

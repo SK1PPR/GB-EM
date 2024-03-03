@@ -3,7 +3,6 @@ const SUBTRACT_FLAG_BYTE_POSITION: u8 = 6;
 const HALF_CARYY_FLAG_BYTE_POSITION: u8 = 5;
 const CARRY_FLAG_BYTE_POSITION: u8 = 4;
 
-
 #[derive(Copy, Clone)]
 pub struct Registers {
     pub a: u8,
@@ -13,7 +12,7 @@ pub struct Registers {
     pub e: u8,
     pub f: FlagRegister,
     pub h: u8,
-    pub l: u8
+    pub l: u8,
 }
 
 impl Registers {
@@ -31,13 +30,13 @@ pub struct FlagRegister {
     pub zero: bool,
     pub subtract: bool,
     pub half_carry: bool,
-    pub carry: bool
+    pub carry: bool,
 }
 
 impl std::convert::From<u8> for FlagRegister {
     fn from(byte: u8) -> Self {
         let zero = ((byte >> ZERO_FLAG_BYTE_POSITION) & 0b1) != 0;
-        let subtract = ((byte>> SUBTRACT_FLAG_BYTE_POSITION) & 0b1) != 0;
+        let subtract = ((byte >> SUBTRACT_FLAG_BYTE_POSITION) & 0b1) != 0;
         let half_carry = ((byte >> HALF_CARYY_FLAG_BYTE_POSITION) & 0b1) != 0;
         let carry = ((byte >> CARRY_FLAG_BYTE_POSITION) & 0b1) != 0;
 
@@ -45,8 +44,7 @@ impl std::convert::From<u8> for FlagRegister {
             zero,
             subtract,
             half_carry,
-            carry
+            carry,
         }
     }
 }
-
