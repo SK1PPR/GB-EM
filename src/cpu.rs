@@ -1,26 +1,6 @@
 use crate::registers::Registers;
 use crate::memory::MemoryBus;
-
-enum Instruction {
-    ADD(ArithmeticTarget),
-    INC(IncDecTarget),
-}
-
-impl Instruction {
-    fn from_byte(byte:u8) -> Option<Instruction> {
-        match byte {
-            0x02 => Some(Instruction::INC(IncDecTarget::BC)),
-            0x13 => Some(Instruction::INC(IncDecTarget::DE)),
-        }
-    }
-}
-
-enum ArithmeticTarget {
-    A, B, C, D, E, H, L,
-}
-enum IncDecTarget {
-    BC, DE,
-}
+use crate::instructions::{Instruction, JumpTest, ArithmeticTarget, IncDecTarget};
 
 struct CPU {
     registers: Registers,
@@ -31,11 +11,16 @@ struct CPU {
 impl CPU {
     fn step(&mut self) {
         let mut instruction_byte = self.bus.read_byte(self.pc);
+        let prefixed = instruction_byte == 0xCB;
+        if prefixed {
+            instruction_byte = self.bus.read_byte(self.pc + 1);
+        }
 
-        let next_pc = if let Some(instruction) = Instruction::from_byte(instruction_byte) {
+        let next_pc = if let Some(instruction) = Instruction::from_byte(instruction_byte, prefixed) {
             self.execute(instruction)
         } else {
-            panic!("Unknown instruction found for: 0x{:x}", instruction_byte);
+            let description = format!("0x{}:{:x}", if prefixed { "cb" } else {""}, instruction_byte);
+            panic!("Unknown instruction found for: {}", description);
         };
 
         self.pc = next_pc;
@@ -43,6 +28,16 @@ impl CPU {
 
     fn execute(&mut self, instruction: Instruction) -> u16 {
         match instruction {
+            Instruction::JP(test) => {
+                let jump_condition = match test {
+                    JumpTest::NotZero => !self.registers.f.zero,
+                    JumpTest::Zero => self.registers.f.zero,
+                    JumpTest::NotCarry => !self.registers.f.carry,
+                    JumpTest::Carry => self.registers.f.carry,
+                    JumpTest::Always => true
+                };
+                self.jump(jump_condition)
+            }
             Instruction::ADD(target) => {
                 match target {
                     ArithmeticTarget::C => {
@@ -65,5 +60,15 @@ impl CPU {
         self.registers.f.carry = did_overflow;
         self.registers.f.half_carry = (self.registers.a & 0xF) + (value & 0xF) > 0xF;
         new_value
+    }
+
+    fn jump(&self, should_jump: bool) -> u16 {
+        if should_jump {
+            let least_significant_byte = self.bus.read_byte(self.pc + 1) as u16;
+            let most_significant_byte = self.bus.read_byte(self.pc + 2) as u16;
+            (most_significant_byte << 8) | least_significant_byte
+        } else {
+            self.pc.wrapping_add(3)
+        }
     }
 }
