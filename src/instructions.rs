@@ -60,9 +60,23 @@ pub enum Instruction {
     RES(u8, ArithmeticTarget),
     SET(u8, ArithmeticTarget),
 
-    JP(JumpTest),
+    //Jump instructions
+    JP(JumpType),
+    JPL,
+    JR(JumpType),
+    CALL(JumpType),
+    RET(JumpType),
+    RETI,
+    RST(u8),
+
+    // Misellanous instructions
+    HALT,
+    STOP,
+    DI,
+    EI,
     NOP,
-    LD(LoadType),
+
+    LD(LoadType), // Target is before source
 }
 
 impl Instruction {
@@ -352,11 +366,6 @@ impl Instruction {
             0xFD => Some(Instruction::SET(0x07, ArithmeticTarget::L)),
             0xFE => Some(Instruction::SET(0x07, ArithmeticTarget::HLI)),
             0xFF => Some(Instruction::SET(0x07, ArithmeticTarget::A)),
-            _ =>
-            /* TODO: Add mapping for rest of instructions */
-            {
-                None
-            }
         }
     }
 
@@ -495,6 +504,161 @@ impl Instruction {
             0x17 => Some(Instruction::RLA),
             0x1F => Some(Instruction::RRA),
 
+            // Jump Instructions
+            0xC2 => Some(Instruction::JP(JumpType::NotZero)),
+            0xC3 => Some(Instruction::JP(JumpType::Always)),
+            0xCA => Some(Instruction::JP(JumpType::Zero)),
+            0xD2 => Some(Instruction::JP(JumpType::NotCarry)),
+            0xDA => Some(Instruction::JP(JumpType::Carry)),
+            0xE9 => Some(Instruction::JPL),
+
+            //Jump Relative Instructions
+            0x18 => Some(Instruction::JR(JumpType::Always)),
+            0x28 => Some(Instruction::JR(JumpType::Zero)),
+            0x38 => Some(Instruction::JR(JumpType::Carry)),
+            0x20 => Some(Instruction::JR(JumpType::NotZero)),
+            0x30 => Some(Instruction::JR(JumpType::NotCarry)),
+
+            // Call instructions
+            0xC4 => Some(Instruction::CALL(JumpType::NotZero)),
+            0xCC => Some(Instruction::CALL(JumpType::Zero)),
+            0xCD => Some(Instruction::CALL(JumpType::Always)),
+            0xD4 => Some(Instruction::CALL(JumpType::NotCarry)),
+            0xDC => Some(Instruction::CALL(JumpType::Carry)),
+
+            //Return Instructions
+            0xC0 => Some(Instruction::RET(JumpType::NotZero)),
+            0xC8 => Some(Instruction::RET(JumpType::Zero)),
+            0xC9 => Some(Instruction::RET(JumpType::Always)),
+            0xD0 => Some(Instruction::RET(JumpType::NotCarry)),
+            0xD8 => Some(Instruction::RET(JumpType::Carry)),
+            0xD9 => Some(Instruction::RETI),
+            0xC7 => Some(Instruction::RST(0x00)),
+            0xD7 => Some(Instruction::RST(0x02)),
+            0xE7 => Some(Instruction::RST(0x04)),
+            0xF7 => Some(Instruction::RST(0x06)),
+            0xCF => Some(Instruction::RST(0x01)),
+            0xDF => Some(Instruction::RST(0x03)),
+            0xEF => Some(Instruction::RST(0x05)),
+            0xFF => Some(Instruction::RST(0x07)),
+
+            // Miscellanous instructions
+            0x00 => Some(Instruction::NOP),
+            0x10 => Some(Instruction::STOP),
+            0x76 => Some(Instruction::HALT),
+            0xF3 => Some(Instruction::DI),
+            0xFB => Some(Instruction::EI),
+
+            // Load instructions
+            0x01 => Some(Instruction::LD(LoadType::Word(LoadWord::BC, LoadWord::D16))),
+            0x02 => Some(Instruction::LD(LoadType::Byte(LoadByte::BCI, LoadByte::A))),
+            0x06 => Some(Instruction::LD(LoadType::Byte(LoadByte::B, LoadByte::D8))),
+            0x08 => Some(Instruction::LD(LoadType::Word(LoadWord::A16, LoadWord::SP))),
+            0x0A => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::BCI))),
+            0x0E => Some(Instruction::LD(LoadType::Byte(LoadByte::C, LoadByte::D8))),
+            0x11 => Some(Instruction::LD(LoadType::Word(LoadWord::DE, LoadWord::D16))),
+            0x12 => Some(Instruction::LD(LoadType::Byte(LoadByte::DEI, LoadByte::A))),
+            0x16 => Some(Instruction::LD(LoadType::Byte(LoadByte::D, LoadByte::D8))),
+            0x1A => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::DEI))),
+            0x1E => Some(Instruction::LD(LoadType::Byte(LoadByte::E, LoadByte::D8))),
+            0x21 => Some(Instruction::LD(LoadType::Word(LoadWord::HL, LoadWord::D16))),
+            0x22 => Some(Instruction::LD(LoadType::Increment(
+                LoadByte::HLI,
+                LoadByte::A,
+            ))),
+            0x26 => Some(Instruction::LD(LoadType::Byte(LoadByte::H, LoadByte::D8))),
+            0x2A => Some(Instruction::LD(LoadType::Increment(
+                LoadByte::A,
+                LoadByte::HLI,
+            ))),
+            0x2E => Some(Instruction::LD(LoadType::Byte(LoadByte::L, LoadByte::D8))),
+            0x31 => Some(Instruction::LD(LoadType::Word(LoadWord::SP, LoadWord::D16))),
+            0x32 => Some(Instruction::LD(LoadType::Decrement(
+                LoadByte::HLI,
+                LoadByte::A,
+            ))),
+            0x36 => Some(Instruction::LD(LoadType::Byte(LoadByte::HLI, LoadByte::D8))),
+            0x3A => Some(Instruction::LD(LoadType::Decrement(
+                LoadByte::A,
+                LoadByte::HLI,
+            ))),
+            0x3E => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::D8))),
+            //
+            0x40 => Some(Instruction::LD(LoadType::Byte(LoadByte::B, LoadByte::B))),
+            0x41 => Some(Instruction::LD(LoadType::Byte(LoadByte::B, LoadByte::C))),
+            0x42 => Some(Instruction::LD(LoadType::Byte(LoadByte::B, LoadByte::D))),
+            0x43 => Some(Instruction::LD(LoadType::Byte(LoadByte::B, LoadByte::E))),
+            0x44 => Some(Instruction::LD(LoadType::Byte(LoadByte::B, LoadByte::H))),
+            0x45 => Some(Instruction::LD(LoadType::Byte(LoadByte::B, LoadByte::L))),
+            0x46 => Some(Instruction::LD(LoadType::Byte(LoadByte::B, LoadByte::HLI))),
+            0x47 => Some(Instruction::LD(LoadType::Byte(LoadByte::B, LoadByte::A))),
+            0x48 => Some(Instruction::LD(LoadType::Byte(LoadByte::C, LoadByte::B))),
+            0x49 => Some(Instruction::LD(LoadType::Byte(LoadByte::C, LoadByte::C))),
+            0x4A => Some(Instruction::LD(LoadType::Byte(LoadByte::C, LoadByte::D))),
+            0x4B => Some(Instruction::LD(LoadType::Byte(LoadByte::C, LoadByte::E))),
+            0x4C => Some(Instruction::LD(LoadType::Byte(LoadByte::C, LoadByte::H))),
+            0x4D => Some(Instruction::LD(LoadType::Byte(LoadByte::C, LoadByte::L))),
+            0x4E => Some(Instruction::LD(LoadType::Byte(LoadByte::C, LoadByte::HLI))),
+            0x4F => Some(Instruction::LD(LoadType::Byte(LoadByte::C, LoadByte::A))),
+            //
+            0x50 => Some(Instruction::LD(LoadType::Byte(LoadByte::D, LoadByte::B))),
+            0x51 => Some(Instruction::LD(LoadType::Byte(LoadByte::D, LoadByte::C))),
+            0x52 => Some(Instruction::LD(LoadType::Byte(LoadByte::D, LoadByte::D))),
+            0x53 => Some(Instruction::LD(LoadType::Byte(LoadByte::D, LoadByte::E))),
+            0x54 => Some(Instruction::LD(LoadType::Byte(LoadByte::D, LoadByte::H))),
+            0x55 => Some(Instruction::LD(LoadType::Byte(LoadByte::D, LoadByte::L))),
+            0x56 => Some(Instruction::LD(LoadType::Byte(LoadByte::D, LoadByte::HLI))),
+            0x57 => Some(Instruction::LD(LoadType::Byte(LoadByte::D, LoadByte::A))),
+            0x58 => Some(Instruction::LD(LoadType::Byte(LoadByte::E, LoadByte::B))),
+            0x59 => Some(Instruction::LD(LoadType::Byte(LoadByte::E, LoadByte::C))),
+            0x5A => Some(Instruction::LD(LoadType::Byte(LoadByte::E, LoadByte::D))),
+            0x5B => Some(Instruction::LD(LoadType::Byte(LoadByte::E, LoadByte::E))),
+            0x5C => Some(Instruction::LD(LoadType::Byte(LoadByte::E, LoadByte::H))),
+            0x5D => Some(Instruction::LD(LoadType::Byte(LoadByte::E, LoadByte::L))),
+            0x5E => Some(Instruction::LD(LoadType::Byte(LoadByte::E, LoadByte::HLI))),
+            0x5F => Some(Instruction::LD(LoadType::Byte(LoadByte::E, LoadByte::A))),
+            //
+            0x60 => Some(Instruction::LD(LoadType::Byte(LoadByte::H, LoadByte::B))),
+            0x61 => Some(Instruction::LD(LoadType::Byte(LoadByte::H, LoadByte::C))),
+            0x62 => Some(Instruction::LD(LoadType::Byte(LoadByte::H, LoadByte::D))),
+            0x63 => Some(Instruction::LD(LoadType::Byte(LoadByte::H, LoadByte::E))),
+            0x64 => Some(Instruction::LD(LoadType::Byte(LoadByte::H, LoadByte::H))),
+            0x65 => Some(Instruction::LD(LoadType::Byte(LoadByte::H, LoadByte::L))),
+            0x66 => Some(Instruction::LD(LoadType::Byte(LoadByte::H, LoadByte::HLI))),
+            0x67 => Some(Instruction::LD(LoadType::Byte(LoadByte::H, LoadByte::A))),
+            0x68 => Some(Instruction::LD(LoadType::Byte(LoadByte::L, LoadByte::B))),
+            0x69 => Some(Instruction::LD(LoadType::Byte(LoadByte::L, LoadByte::C))),
+            0x6A => Some(Instruction::LD(LoadType::Byte(LoadByte::L, LoadByte::D))),
+            0x6B => Some(Instruction::LD(LoadType::Byte(LoadByte::L, LoadByte::E))),
+            0x6C => Some(Instruction::LD(LoadType::Byte(LoadByte::L, LoadByte::H))),
+            0x6D => Some(Instruction::LD(LoadType::Byte(LoadByte::L, LoadByte::L))),
+            0x6E => Some(Instruction::LD(LoadType::Byte(LoadByte::L, LoadByte::HLI))),
+            0x6F => Some(Instruction::LD(LoadType::Byte(LoadByte::L, LoadByte::A))),
+            //
+            0x70 => Some(Instruction::LD(LoadType::Byte(LoadByte::HLI, LoadByte::B))),
+            0x71 => Some(Instruction::LD(LoadType::Byte(LoadByte::HLI, LoadByte::C))),
+            0x72 => Some(Instruction::LD(LoadType::Byte(LoadByte::HLI, LoadByte::D))),
+            0x73 => Some(Instruction::LD(LoadType::Byte(LoadByte::HLI, LoadByte::E))),
+            0x74 => Some(Instruction::LD(LoadType::Byte(LoadByte::HLI, LoadByte::H))),
+            0x75 => Some(Instruction::LD(LoadType::Byte(LoadByte::HLI, LoadByte::L))),
+            0x77 => Some(Instruction::LD(LoadType::Byte(LoadByte::HLI, LoadByte::A))),
+            0x78 => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::B))),
+            0x79 => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::C))),
+            0x7A => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::D))),
+            0x7B => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::E))),
+            0x7C => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::H))),
+            0x7D => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::L))),
+            0x7E => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::HLI))),
+            0x7F => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::A))),
+            //
+            0xE0 => Some(Instruction::LD(LoadType::High(LoadByte::A8, LoadByte::A))),
+            0xE2 => Some(Instruction::LD(LoadType::High(LoadByte::C, LoadByte::A))),
+            0xEA => Some(Instruction::LD(LoadType::Byte(LoadByte::A16, LoadByte::A))),
+            0xF0 => Some(Instruction::LD(LoadType::High(LoadByte::A, LoadByte::A8))),
+            0xF2 => Some(Instruction::LD(LoadType::High(LoadByte::A, LoadByte::C))),
+            0xF8 => Some(Instruction::LD(LoadType::Word(LoadWord::HL, LoadWord::SP))),
+            0xF9 => Some(Instruction::LD(LoadType::Word(LoadWord::SP, LoadWord::HL))),
+            0xFA => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::A16))),
             _ => None,
         }
     }
@@ -535,7 +699,7 @@ pub enum ArithmeticTargetLong {
 }
 
 // Enums for jump instructions
-pub enum JumpTest {
+pub enum JumpType {
     NotZero,
     Zero,
     NotCarry,
@@ -545,10 +709,14 @@ pub enum JumpTest {
 
 // Enums for load instructions
 pub enum LoadType {
-    Byte(LoadByteTarget, LoadByteSource),
+    Byte(LoadByte, LoadByte),
+    Word(LoadWord, LoadWord),
+    Increment(LoadByte, LoadByte),
+    Decrement(LoadByte, LoadByte),
+    High(LoadByte, LoadByte),
 }
 
-pub enum LoadByteTarget {
+pub enum LoadByte {
     A,
     B,
     C,
@@ -557,17 +725,18 @@ pub enum LoadByteTarget {
     H,
     L,
     D8,
+    A8,
+    A16,
     HLI,
+    BCI,
+    DEI,
 }
 
-pub enum LoadByteSource {
-    A,
-    B,
-    C,
-    D,
-    E,
-    H,
-    L,
-    D8,
-    HLT,
+pub enum LoadWord {
+    BC,
+    DE,
+    HL,
+    D16,
+    SP,
+    A16,
 }

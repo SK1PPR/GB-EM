@@ -1,4 +1,4 @@
-use crate::instructions::{ArithmeticTarget, IncDecTarget, Instruction, JumpTest};
+use crate::instructions::{ArithmeticTarget, IncDecTarget, Instruction, JumpType};
 use crate::memory::MemoryBus;
 use crate::registers::Registers;
 
@@ -37,11 +37,11 @@ impl CPU {
 
             Instruction::JP(test) => {
                 let jump_condition = match test {
-                    JumpTest::NotZero => !self.registers.f.zero,
-                    JumpTest::Zero => self.registers.f.zero,
-                    JumpTest::NotCarry => !self.registers.f.carry,
-                    JumpTest::Carry => self.registers.f.carry,
-                    JumpTest::Always => true,
+                    JumpType::NotZero => !self.registers.f.zero,
+                    JumpType::Zero => self.registers.f.zero,
+                    JumpType::NotCarry => !self.registers.f.carry,
+                    JumpType::Carry => self.registers.f.carry,
+                    JumpType::Always => true,
                 };
                 self.jump(jump_condition)
             }
