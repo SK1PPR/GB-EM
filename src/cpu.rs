@@ -1,12 +1,15 @@
 use std::ops::Add;
 
-use crate::instructions::{ArithmeticTarget, IncDecTarget, Instruction, JumpType};
+use crate::instructions::{
+    ArithmeticTarget, IncDecTarget, Instruction, JumpType, LoadType, StackRegisters,
+};
 use crate::memory::MemoryBus;
 use crate::registers::Registers;
 
 struct CPU {
     registers: Registers,
     pc: u16,
+    sp: u16,
     bus: MemoryBus,
 }
 
@@ -60,6 +63,29 @@ impl CPU {
                         self.pc
                     }
                 }
+            }
+
+            /* Load instructions */
+            Instruction::LD(ld_type) => {
+                match ld_type {
+                    LoadType::Byte(target, source) => {}
+                    LoadType::High(target, source) => {}
+                    LoadType::Word(target, source) => {}
+                    LoadType::Increment(target, source) => {}
+                    LoadType::Decrement(target, soruce) => {}
+                }
+                self.pc.wrapping_add(1)
+            }
+
+            /* Stack instructions */
+            Instruction::POP(target) => {
+                match target {
+                    StackRegisters::AF => {}
+                    StackRegisters::BC => {}
+                    StackRegisters::DE => {}
+                    StackRegisters::HL => {}
+                }
+                self.pc.wrapping_add(1)
             }
 
             /* Prefixed Instructions (16-bit instructions) */
@@ -503,5 +529,23 @@ impl CPU {
         } else {
             self.pc.wrapping_add(3)
         }
+    }
+
+    // Stack functions
+    fn push(&mut self, value: u16) {
+        self.sp = self.sp.wrapping_sub(1);
+        self.bus.set_byte(self.sp, ((value & 0xFF00) >> 8) as u8);
+        self.sp = self.sp.wrapping_sub(1);
+        self.bus.set_byte(self.sp, (value & 0x00FF) as u8);
+    }
+
+    fn pop(&mut self) -> u16 {
+        let lsb = self.bus.read_byte(self.sp) as u16;
+        self.sp = self.sp.wrapping_add(1);
+
+        let msb = self.bus.read_byte(self.sp) as u16;
+        self.sp = self.sp.wrapping_add(1);
+
+        (msb << 8) | lsb
     }
 }

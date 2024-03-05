@@ -38,7 +38,6 @@ pub enum Instruction {
     SCF,
     DAA, /* To be read about */
     CPL,
-
     // Rotate Instructions
     RLCA,
     RRCA,
@@ -48,18 +47,15 @@ pub enum Instruction {
     RRC(ArithmeticTarget),
     RL(ArithmeticTarget),
     RR(ArithmeticTarget),
-
     // Shift Instructions
     SLA(ArithmeticTarget),
     SRA(ArithmeticTarget),
     SWAP(ArithmeticTarget),
     SRL(ArithmeticTarget),
-
     //Bit instructions
     BIT(u8, ArithmeticTarget),
     RES(u8, ArithmeticTarget),
     SET(u8, ArithmeticTarget),
-
     //Jump instructions
     JP(JumpType),
     JPL,
@@ -68,15 +64,102 @@ pub enum Instruction {
     RET(JumpType),
     RETI,
     RST(u8),
-
     // Misellanous instructions
     HALT,
     STOP,
     DI,
     EI,
     NOP,
-
+    // Stack Instructions
+    PUSH(StackRegisters),
+    POP(StackRegisters),
+    // Load Instructions (need re-writing)
     LD(LoadType), // Target is before source
+}
+
+// Enums for arithmetic instructions
+pub enum ArithmeticTarget {
+    A,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    HLI,
+}
+
+pub enum IncDecTarget {
+    BC,
+    DE,
+    A,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    HL,
+    SP,
+    HLI,
+}
+
+pub enum ArithmeticTargetLong {
+    BC,
+    HL,
+    DE,
+    SP,
+}
+
+// Enums for jump instructions
+pub enum JumpType {
+    NotZero,
+    Zero,
+    NotCarry,
+    Carry,
+    Always,
+}
+
+// Enum for stack
+pub enum StackRegisters {
+    AF,
+    BC,
+    DE,
+    HL,
+}
+
+// Enums for load instructions
+pub enum LoadType {
+    Byte(LoadByte, LoadByte),
+    Word(LoadWord, LoadWord),
+    Increment(LoadByte, LoadByte),
+    Decrement(LoadByte, LoadByte),
+    High(LoadByte, LoadByte),
+}
+
+pub enum LoadByte {
+    A,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    D8,
+    A8,
+    A16,
+    HLI,
+    BCI,
+    DEI,
+}
+
+pub enum LoadWord {
+    BC,
+    DE,
+    HL,
+    D16,
+    SP,
+    A16,
 }
 
 impl Instruction {
@@ -659,84 +742,19 @@ impl Instruction {
             0xF8 => Some(Instruction::LD(LoadType::Word(LoadWord::HL, LoadWord::SP))),
             0xF9 => Some(Instruction::LD(LoadType::Word(LoadWord::SP, LoadWord::HL))),
             0xFA => Some(Instruction::LD(LoadType::Byte(LoadByte::A, LoadByte::A16))),
+
+            // Stack instructions
+            0xC1 => Some(Instruction::POP(StackRegisters::BC)),
+            0xC5 => Some(Instruction::PUSH(StackRegisters::BC)),
+            0xD1 => Some(Instruction::POP(StackRegisters::DE)),
+            0xD5 => Some(Instruction::PUSH(StackRegisters::DE)),
+            0xE1 => Some(Instruction::POP(StackRegisters::HL)),
+            0xE5 => Some(Instruction::PUSH(StackRegisters::HL)),
+            0xF1 => Some(Instruction::POP(StackRegisters::AF)),
+            0xF5 => Some(Instruction::PUSH(StackRegisters::AF)),
+
+            // All other instruction sets are illegal
             _ => None,
         }
     }
-}
-
-// Enums for arithmetic instructions
-pub enum ArithmeticTarget {
-    A,
-    B,
-    C,
-    D,
-    E,
-    H,
-    L,
-    HLI,
-}
-
-pub enum IncDecTarget {
-    BC,
-    DE,
-    A,
-    B,
-    C,
-    D,
-    E,
-    H,
-    L,
-    HL,
-    SP,
-    HLI,
-}
-
-pub enum ArithmeticTargetLong {
-    BC,
-    HL,
-    DE,
-    SP,
-}
-
-// Enums for jump instructions
-pub enum JumpType {
-    NotZero,
-    Zero,
-    NotCarry,
-    Carry,
-    Always,
-}
-
-// Enums for load instructions
-pub enum LoadType {
-    Byte(LoadByte, LoadByte),
-    Word(LoadWord, LoadWord),
-    Increment(LoadByte, LoadByte),
-    Decrement(LoadByte, LoadByte),
-    High(LoadByte, LoadByte),
-}
-
-pub enum LoadByte {
-    A,
-    B,
-    C,
-    D,
-    E,
-    H,
-    L,
-    D8,
-    A8,
-    A16,
-    HLI,
-    BCI,
-    DEI,
-}
-
-pub enum LoadWord {
-    BC,
-    DE,
-    HL,
-    D16,
-    SP,
-    A16,
 }
