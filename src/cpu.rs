@@ -138,7 +138,7 @@ impl CPU {
                         );
                     }
                 }
-                self.pc.add(2)
+                self.pc.wrapping_add(2)
             }
 
             /* Rotate the contents of register to the right. That is, the contents of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy operation) are copied to bit 5. The same operation is repeated in sequence for the rest of the register. The contents of bit 0 are placed in both the CY flag and bit 7 of register. */
@@ -189,7 +189,7 @@ impl CPU {
                         );
                     }
                 }
-                self.pc.add(2)
+                self.pc.wrapping_add(2)
             }
 
             /* Rotate the contents of register to the left. That is, the contents of bit 0 are copied to bit 1, and the previous contents of bit 1 (before the copy operation) are copied to bit 2. The same operation is repeated in sequence for the rest of the register. The previous contents of the carry (CY) flag are copied to bit 0 of register. */
@@ -231,7 +231,7 @@ impl CPU {
                         );
                     }
                 }
-                self.pc.add(2)
+                self.pc.wrapping_add(2)
             }
 
             /* Rotate the contents of register to the right. That is, the contents of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy operation) are copied to bit 5. The same operation is repeated in sequence for the rest of the register. The previous contents of the carry (CY) flag are copied to bit 7 of register. */
@@ -273,7 +273,7 @@ impl CPU {
                         );
                     }
                 }
-                self.pc.add(2)
+                self.pc.wrapping_add(2)
             }
 
             /* Shift the contents of register to the left. That is, the contents of bit 0 are copied to bit 1, and the previous contents of bit 1 (before the copy operation) are copied to bit 2. The same operation is repeated in sequence for the rest of the register. The contents of bit 7 are copied to the CY flag, and bit 0 of register is reset to 0. */
@@ -542,10 +542,8 @@ impl CPU {
     fn pop(&mut self) -> u16 {
         let lsb = self.bus.read_byte(self.sp) as u16;
         self.sp = self.sp.wrapping_add(1);
-
         let msb = self.bus.read_byte(self.sp) as u16;
         self.sp = self.sp.wrapping_add(1);
-
         (msb << 8) | lsb
     }
 }
