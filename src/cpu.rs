@@ -1,7 +1,8 @@
+use std::io::WriterPanicked;
 use std::ops::Add;
 
 use crate::instructions::{
-    ArithmeticTarget, IncDecTarget, Instruction, JumpType, LoadType, StackRegisters,
+    ArithmeticTarget, IncDecTarget, Instruction, JumpType, LoadType, RegisterTarget, StackRegisters,
 };
 use crate::memory::MemoryBus;
 use crate::registers::Registers;
@@ -67,13 +68,10 @@ impl CPU {
 
             /* Load instructions */
             Instruction::LD(ld_type) => {
-                match ld_type {
-                    LoadType::Byte(target, source) => {}
-                    LoadType::High(target, source) => {}
-                    LoadType::Word(target, source) => {}
-                    LoadType::Increment(target, source) => {}
-                    LoadType::Decrement(target, soruce) => {}
-                }
+                // match ld_type {
+                //     LoadType::Byte(target, source) => {}
+                //     LoadType::Word(target, source) => {}
+                // }
                 self.pc.wrapping_add(1)
             }
 
@@ -93,42 +91,42 @@ impl CPU {
             /* Rotate the contents of register to the left. That is, the contents of bit 0 are copied to bit 1, and the previous contents of bit 1 (before the copy operation) are copied to bit 2. The same operation is repeated in sequence for the rest of the register. The contents of bit 7 are placed in both the CY flag and bit 0 of register. */
             Instruction::RLC(target) => {
                 match target {
-                    ArithmeticTarget::A => {
+                    RegisterTarget::A => {
                         self.registers.f.carry = self.registers.a & 0x80 > 1;
                         self.registers.a = (self.registers.a << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::B => {
+                    RegisterTarget::B => {
                         self.registers.f.carry = self.registers.b & 0x80 > 1;
                         self.registers.b = (self.registers.b << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::C => {
+                    RegisterTarget::C => {
                         self.registers.f.carry = self.registers.c & 0x80 > 1;
                         self.registers.c = (self.registers.c << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::D => {
+                    RegisterTarget::D => {
                         self.registers.f.carry = self.registers.d & 0x80 > 1;
                         self.registers.d = (self.registers.d << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::E => {
+                    RegisterTarget::E => {
                         self.registers.f.carry = self.registers.e & 0x80 > 1;
                         self.registers.e = (self.registers.e << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::H => {
+                    RegisterTarget::H => {
                         self.registers.f.carry = self.registers.h & 0x80 > 1;
                         self.registers.h = (self.registers.h << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::L => {
+                    RegisterTarget::L => {
                         self.registers.f.carry = self.registers.l & 0x80 > 1;
                         self.registers.l = (self.registers.l << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::HLI => {
+                    RegisterTarget::HLI => {
                         self.registers.f.carry =
                             self.bus.read_byte(self.registers.get_hl()) & 0x80 > 1;
                         self.bus.set_byte(
@@ -144,42 +142,42 @@ impl CPU {
             /* Rotate the contents of register to the right. That is, the contents of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy operation) are copied to bit 5. The same operation is repeated in sequence for the rest of the register. The contents of bit 0 are placed in both the CY flag and bit 7 of register. */
             Instruction::RRC(target) => {
                 match target {
-                    ArithmeticTarget::A => {
+                    RegisterTarget::A => {
                         self.registers.f.carry = self.registers.a & 0x01 == 1;
                         self.registers.a = (self.registers.a >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::B => {
+                    RegisterTarget::B => {
                         self.registers.f.carry = self.registers.b & 0x01 == 1;
                         self.registers.b = (self.registers.b >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::C => {
+                    RegisterTarget::C => {
                         self.registers.f.carry = self.registers.c & 0x01 == 1;
                         self.registers.c = (self.registers.c >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::D => {
+                    RegisterTarget::D => {
                         self.registers.f.carry = self.registers.d & 0x01 == 1;
                         self.registers.d = (self.registers.d >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::E => {
+                    RegisterTarget::E => {
                         self.registers.f.carry = self.registers.e & 0x01 == 1;
                         self.registers.e = (self.registers.e >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::H => {
+                    RegisterTarget::H => {
                         self.registers.f.carry = self.registers.h & 0x01 == 1;
                         self.registers.h = (self.registers.h >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::L => {
+                    RegisterTarget::L => {
                         self.registers.f.carry = self.registers.l & 0x01 == 1;
                         self.registers.l = (self.registers.l >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::HLI => {
+                    RegisterTarget::HLI => {
                         self.registers.f.carry =
                             self.bus.read_byte(self.registers.get_hl()) & 0x01 == 1;
                         self.bus.set_byte(
@@ -195,35 +193,35 @@ impl CPU {
             /* Rotate the contents of register to the left. That is, the contents of bit 0 are copied to bit 1, and the previous contents of bit 1 (before the copy operation) are copied to bit 2. The same operation is repeated in sequence for the rest of the register. The previous contents of the carry (CY) flag are copied to bit 0 of register. */
             Instruction::RL(target) => {
                 match target {
-                    ArithmeticTarget::A => {
+                    RegisterTarget::A => {
                         self.registers.a = (self.registers.a << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::B => {
+                    RegisterTarget::B => {
                         self.registers.b = (self.registers.b << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::C => {
+                    RegisterTarget::C => {
                         self.registers.c = (self.registers.c << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::D => {
+                    RegisterTarget::D => {
                         self.registers.d = (self.registers.d << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::E => {
+                    RegisterTarget::E => {
                         self.registers.e = (self.registers.e << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::H => {
+                    RegisterTarget::H => {
                         self.registers.h = (self.registers.h << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::L => {
+                    RegisterTarget::L => {
                         self.registers.l = (self.registers.l << 1)
                             | (if self.registers.f.carry { 0x01 } else { 0x00 });
                     }
-                    ArithmeticTarget::HLI => {
+                    RegisterTarget::HLI => {
                         self.bus.set_byte(
                             self.registers.get_hl(),
                             (self.bus.read_byte(self.registers.get_hl()) << 1)
@@ -237,35 +235,35 @@ impl CPU {
             /* Rotate the contents of register to the right. That is, the contents of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy operation) are copied to bit 5. The same operation is repeated in sequence for the rest of the register. The previous contents of the carry (CY) flag are copied to bit 7 of register. */
             Instruction::RR(target) => {
                 match target {
-                    ArithmeticTarget::A => {
+                    RegisterTarget::A => {
                         self.registers.a = (self.registers.a >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::B => {
+                    RegisterTarget::B => {
                         self.registers.b = (self.registers.b >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::C => {
+                    RegisterTarget::C => {
                         self.registers.c = (self.registers.c >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::D => {
+                    RegisterTarget::D => {
                         self.registers.d = (self.registers.d >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::E => {
+                    RegisterTarget::E => {
                         self.registers.e = (self.registers.e >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::H => {
+                    RegisterTarget::H => {
                         self.registers.h = (self.registers.h >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::L => {
+                    RegisterTarget::L => {
                         self.registers.l = (self.registers.l >> 1)
                             | (if self.registers.f.carry { 0x80 } else { 0x00 });
                     }
-                    ArithmeticTarget::HLI => {
+                    RegisterTarget::HLI => {
                         self.bus.set_byte(
                             self.registers.get_hl(),
                             (self.bus.read_byte(self.registers.get_hl()) >> 1)
@@ -279,35 +277,35 @@ impl CPU {
             /* Shift the contents of register to the left. That is, the contents of bit 0 are copied to bit 1, and the previous contents of bit 1 (before the copy operation) are copied to bit 2. The same operation is repeated in sequence for the rest of the register. The contents of bit 7 are copied to the CY flag, and bit 0 of register is reset to 0. */
             Instruction::SLA(target) => {
                 match target {
-                    ArithmeticTarget::A => {
+                    RegisterTarget::A => {
                         self.registers.f.carry = self.registers.a & 0x7F > 0;
                         self.registers.a = (self.registers.a << 1) | (self.registers.a & 0x01);
                     }
-                    ArithmeticTarget::B => {
+                    RegisterTarget::B => {
                         self.registers.f.carry = self.registers.b & 0x7F > 0;
                         self.registers.b = (self.registers.a << 1) | (self.registers.b & 0x01);
                     }
-                    ArithmeticTarget::C => {
+                    RegisterTarget::C => {
                         self.registers.f.carry = self.registers.c & 0x7F > 0;
                         self.registers.c = (self.registers.c << 1) | (self.registers.c & 0x01);
                     }
-                    ArithmeticTarget::D => {
+                    RegisterTarget::D => {
                         self.registers.f.carry = self.registers.d & 0x7F > 0;
                         self.registers.d = (self.registers.d << 1) | (self.registers.d & 0x01);
                     }
-                    ArithmeticTarget::E => {
+                    RegisterTarget::E => {
                         self.registers.f.carry = self.registers.e & 0x7F > 0;
                         self.registers.e = (self.registers.e << 1) | (self.registers.e & 0x01);
                     }
-                    ArithmeticTarget::H => {
+                    RegisterTarget::H => {
                         self.registers.f.carry = self.registers.h & 0x7F > 0;
                         self.registers.h = (self.registers.h << 1) | (self.registers.h & 0x01);
                     }
-                    ArithmeticTarget::L => {
+                    RegisterTarget::L => {
                         self.registers.f.carry = self.registers.l & 0x7F > 0;
                         self.registers.l = (self.registers.l << 1) | (self.registers.l & 0x01);
                     }
-                    ArithmeticTarget::HLI => {
+                    RegisterTarget::HLI => {
                         self.registers.f.carry =
                             self.bus.read_byte(self.registers.get_hl()) & 0x7F > 0;
                         self.bus.set_byte(
@@ -323,35 +321,35 @@ impl CPU {
             /* Shift the contents of register to the right. That is, the contents of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy operation) are copied to bit 5. The same operation is repeated in sequence for the rest of the register. The contents of bit 0 are copied to the CY flag, and bit 7 of register is unchanged. */
             Instruction::SRA(target) => {
                 match target {
-                    ArithmeticTarget::A => {
+                    RegisterTarget::A => {
                         self.registers.f.carry = self.registers.a & 0x01 == 1;
                         self.registers.a = (self.registers.a >> 1) | (self.registers.a & 0x80);
                     }
-                    ArithmeticTarget::B => {
+                    RegisterTarget::B => {
                         self.registers.f.carry = self.registers.b & 0x01 == 1;
                         self.registers.b = (self.registers.b >> 1) | (self.registers.b & 0x80);
                     }
-                    ArithmeticTarget::C => {
+                    RegisterTarget::C => {
                         self.registers.f.carry = self.registers.c & 0x01 == 1;
                         self.registers.c = (self.registers.c >> 1) | (self.registers.c & 0x80);
                     }
-                    ArithmeticTarget::D => {
+                    RegisterTarget::D => {
                         self.registers.f.carry = self.registers.d & 0x01 == 1;
                         self.registers.d = (self.registers.d >> 1) | (self.registers.d & 0x80);
                     }
-                    ArithmeticTarget::E => {
+                    RegisterTarget::E => {
                         self.registers.f.carry = self.registers.e & 0x01 == 1;
                         self.registers.e = (self.registers.e >> 1) | (self.registers.e & 0x80);
                     }
-                    ArithmeticTarget::H => {
+                    RegisterTarget::H => {
                         self.registers.f.carry = self.registers.h & 0x01 == 1;
                         self.registers.h = (self.registers.h >> 1) | (self.registers.h & 0x80);
                     }
-                    ArithmeticTarget::L => {
+                    RegisterTarget::L => {
                         self.registers.f.carry = self.registers.l & 0x01 == 1;
                         self.registers.l = (self.registers.l >> 1) | (self.registers.l & 0x80);
                     }
-                    ArithmeticTarget::HLI => {
+                    RegisterTarget::HLI => {
                         let value = self.bus.read_byte(self.registers.get_hl());
                         self.registers.f.carry = value & 0x01 == 1;
                         self.bus
@@ -364,28 +362,28 @@ impl CPU {
             /* Shift the contents of the lower-order four bits (0-3) of register to the higher-order four bits (4-7) of the register, and shift the higher-order four bits to the lower-order four bits. */
             Instruction::SWAP(target) => {
                 match target {
-                    ArithmeticTarget::A => {
+                    RegisterTarget::A => {
                         self.registers.a = (self.registers.a << 4) | (self.registers.a >> 4)
                     }
-                    ArithmeticTarget::B => {
+                    RegisterTarget::B => {
                         self.registers.b = (self.registers.b << 4) | (self.registers.b >> 4)
                     }
-                    ArithmeticTarget::C => {
+                    RegisterTarget::C => {
                         self.registers.c = (self.registers.c << 4) | (self.registers.c >> 4)
                     }
-                    ArithmeticTarget::D => {
+                    RegisterTarget::D => {
                         self.registers.d = (self.registers.d << 4) | (self.registers.d >> 4)
                     }
-                    ArithmeticTarget::E => {
+                    RegisterTarget::E => {
                         self.registers.e = (self.registers.e << 4) | (self.registers.e >> 4)
                     }
-                    ArithmeticTarget::H => {
+                    RegisterTarget::H => {
                         self.registers.h = (self.registers.h << 4) | (self.registers.h >> 4)
                     }
-                    ArithmeticTarget::L => {
+                    RegisterTarget::L => {
                         self.registers.l = (self.registers.l << 4) | (self.registers.l >> 4)
                     }
-                    ArithmeticTarget::HLI => {
+                    RegisterTarget::HLI => {
                         let value = self.bus.read_byte(self.registers.get_hl());
                         self.bus
                             .set_byte(self.registers.get_hl(), (value << 4) | (value >> 4));
@@ -397,35 +395,35 @@ impl CPU {
             /* Shift the contents of register to the right. That is, the contents of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy operation) are copied to bit 5. The same operation is repeated in sequence for the rest of the register. The contents of bit 0 are copied to the CY flag, and bit 7 of register is reset to 0. */
             Instruction::SRL(target) => {
                 match target {
-                    ArithmeticTarget::A => {
+                    RegisterTarget::A => {
                         self.registers.f.carry = self.registers.a & 0x01 == 1;
                         self.registers.a = (self.registers.a >> 1) & 0x7F;
                     }
-                    ArithmeticTarget::B => {
+                    RegisterTarget::B => {
                         self.registers.f.carry = self.registers.b & 0x01 == 1;
                         self.registers.b = (self.registers.b >> 1) & 0x7F;
                     }
-                    ArithmeticTarget::C => {
+                    RegisterTarget::C => {
                         self.registers.f.carry = self.registers.c & 0x01 == 1;
                         self.registers.c = (self.registers.c >> 1) & 0x7F;
                     }
-                    ArithmeticTarget::D => {
+                    RegisterTarget::D => {
                         self.registers.f.carry = self.registers.d & 0x01 == 1;
                         self.registers.d = (self.registers.d >> 1) & 0x7F;
                     }
-                    ArithmeticTarget::E => {
+                    RegisterTarget::E => {
                         self.registers.f.carry = self.registers.e & 0x01 == 1;
                         self.registers.e = (self.registers.e >> 1) & 0x7F;
                     }
-                    ArithmeticTarget::H => {
+                    RegisterTarget::H => {
                         self.registers.f.carry = self.registers.h & 0x01 == 1;
                         self.registers.h = (self.registers.h >> 1) & 0x7F;
                     }
-                    ArithmeticTarget::L => {
+                    RegisterTarget::L => {
                         self.registers.f.carry = self.registers.l & 0x01 == 1;
                         self.registers.l = (self.registers.l >> 1) & 0x7F;
                     }
-                    ArithmeticTarget::HLI => {
+                    RegisterTarget::HLI => {
                         self.registers.f.carry =
                             self.bus.read_byte(self.registers.get_hl()) & 0x01 == 1;
                         self.bus.set_byte(
@@ -440,28 +438,28 @@ impl CPU {
             /* Copy the complement of the contents of bit 'bit' in register to the Z flag of the program status word (PSW). */
             Instruction::BIT(bit, target) => {
                 match target {
-                    ArithmeticTarget::A => {
+                    RegisterTarget::A => {
                         self.registers.f.zero = self.registers.a & 0x01 << bit == 0
                     }
-                    ArithmeticTarget::B => {
+                    RegisterTarget::B => {
                         self.registers.f.zero = self.registers.b & 0x01 << bit == 0
                     }
-                    ArithmeticTarget::C => {
+                    RegisterTarget::C => {
                         self.registers.f.zero = self.registers.c & 0x01 << bit == 0
                     }
-                    ArithmeticTarget::D => {
+                    RegisterTarget::D => {
                         self.registers.f.zero = self.registers.d & 0x01 << bit == 0
                     }
-                    ArithmeticTarget::E => {
+                    RegisterTarget::E => {
                         self.registers.f.zero = self.registers.e & 0x01 << bit == 0
                     }
-                    ArithmeticTarget::H => {
+                    RegisterTarget::H => {
                         self.registers.f.zero = self.registers.h & 0x01 << bit == 0
                     }
-                    ArithmeticTarget::L => {
+                    RegisterTarget::L => {
                         self.registers.f.zero = self.registers.l & 0x01 << bit == 0
                     }
-                    ArithmeticTarget::HLI => {
+                    RegisterTarget::HLI => {
                         self.registers.f.zero =
                             self.bus.read_byte(self.registers.get_hl()) & 0x01 << bit == 0
                     }
@@ -473,14 +471,14 @@ impl CPU {
             Instruction::RES(bit, target) => {
                 let value: u8 = 0xFF ^ (0x01 << bit);
                 match target {
-                    ArithmeticTarget::A => self.registers.b = self.registers.a & value,
-                    ArithmeticTarget::B => self.registers.b = self.registers.b & value,
-                    ArithmeticTarget::C => self.registers.b = self.registers.c & value,
-                    ArithmeticTarget::D => self.registers.b = self.registers.d & value,
-                    ArithmeticTarget::E => self.registers.b = self.registers.e & value,
-                    ArithmeticTarget::H => self.registers.b = self.registers.h & value,
-                    ArithmeticTarget::L => self.registers.b = self.registers.l & value,
-                    ArithmeticTarget::HLI => self.bus.set_byte(
+                    RegisterTarget::A => self.registers.b = self.registers.a & value,
+                    RegisterTarget::B => self.registers.b = self.registers.b & value,
+                    RegisterTarget::C => self.registers.b = self.registers.c & value,
+                    RegisterTarget::D => self.registers.b = self.registers.d & value,
+                    RegisterTarget::E => self.registers.b = self.registers.e & value,
+                    RegisterTarget::H => self.registers.b = self.registers.h & value,
+                    RegisterTarget::L => self.registers.b = self.registers.l & value,
+                    RegisterTarget::HLI => self.bus.set_byte(
                         self.registers.get_hl(),
                         self.bus.read_byte(self.registers.get_hl()) & value,
                     ),
@@ -491,14 +489,14 @@ impl CPU {
             /* Set bit 'bit; in register to 1 */
             Instruction::SET(bit, target) => {
                 match target {
-                    ArithmeticTarget::A => self.registers.b = self.registers.a | 0x01 << bit,
-                    ArithmeticTarget::B => self.registers.b = self.registers.b | 0x01 << bit,
-                    ArithmeticTarget::C => self.registers.b = self.registers.c | 0x01 << bit,
-                    ArithmeticTarget::D => self.registers.b = self.registers.d | 0x01 << bit,
-                    ArithmeticTarget::E => self.registers.b = self.registers.e | 0x01 << bit,
-                    ArithmeticTarget::H => self.registers.b = self.registers.h | 0x01 << bit,
-                    ArithmeticTarget::L => self.registers.b = self.registers.l | 0x01 << bit,
-                    ArithmeticTarget::HLI => self.bus.set_byte(
+                    RegisterTarget::A => self.registers.b = self.registers.a | 0x01 << bit,
+                    RegisterTarget::B => self.registers.b = self.registers.b | 0x01 << bit,
+                    RegisterTarget::C => self.registers.b = self.registers.c | 0x01 << bit,
+                    RegisterTarget::D => self.registers.b = self.registers.d | 0x01 << bit,
+                    RegisterTarget::E => self.registers.b = self.registers.e | 0x01 << bit,
+                    RegisterTarget::H => self.registers.b = self.registers.h | 0x01 << bit,
+                    RegisterTarget::L => self.registers.b = self.registers.l | 0x01 << bit,
+                    RegisterTarget::HLI => self.bus.set_byte(
                         self.registers.get_hl(),
                         self.bus.read_byte(self.registers.get_hl()) | 0x01 << bit,
                     ),
