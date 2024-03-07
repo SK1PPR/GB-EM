@@ -52,6 +52,8 @@ impl CPU {
                 };
                 self.jump(jump_condition)
             }
+
+            // addition instructions
             Instruction::ADD(target) => match target {
                 ArithmeticTarget::B => {
                     let value = self.registers.b;
@@ -109,6 +111,7 @@ impl CPU {
                 }
             },
 
+            // long addition instructions
             Instruction::ADDL(target) => match target {
                 ArithmeticTargetLong::BC => {
                     let value: u16 = self.registers.get_bc();
@@ -138,6 +141,179 @@ impl CPU {
                     let value: u16 = self.bus.read_byte(self.pc + 1) as u16;
                     let new_value: u16 = self.addLong(value, true);
                     self.registers.set_hl(new_value);
+                    self.pc.wrapping_add(2)
+                }
+            },
+
+            // addition with carry instructions
+            Instruction::ADC(target) => match target {
+                ArithmeticTarget::B => {
+                    let value = self.registers.b;
+                    let new_value = self.addWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::C => {
+                    let value = self.registers.c;
+                    let new_value = self.addWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::D => {
+                    let value = self.registers.d;
+                    let new_value = self.addWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::E => {
+                    let value = self.registers.e;
+                    let new_value = self.addWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::H => {
+                    let value = self.registers.h;
+                    let new_value = self.addWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::L => {
+                    let value = self.registers.l;
+                    let new_value = self.addWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::HLI => {
+                    let value = self.bus.read_byte(self.registers.get_hl());
+                    let new_value = self.addWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::A => {
+                    let value = self.registers.a;
+                    let new_value = self.addWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::D8 => {
+                    let value = self.bus.read_byte(self.pc + 1);
+                    let new_value = self.addWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(2)
+                }
+            },
+
+            // Subtraction instructions
+            Instruction::SUB(target) => match target {
+                ArithmeticTarget::B => {
+                    let value = self.registers.b;
+                    let new_value = self.sub(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::C => {
+                    let value = self.registers.c;
+                    let new_value = self.sub(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::D => {
+                    let value = self.registers.d;
+                    let new_value = self.sub(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::E => {
+                    let value = self.registers.e;
+                    let new_value = self.sub(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::H => {
+                    let value = self.registers.h;
+                    let new_value = self.sub(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::L => {
+                    let value = self.registers.l;
+                    let new_value = self.sub(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::HLI => {
+                    let value = self.bus.read_byte(self.registers.get_hl());
+                    let new_value = self.sub(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::A => {
+                    let value = self.registers.a;
+                    let new_value = self.sub(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::D8 => {
+                    let value = self.bus.read_byte(self.pc + 1);
+                    let new_value = self.sub(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(2)
+                }
+            },
+
+            Instruction::SBC(target) => match target {
+                ArithmeticTarget::B => {
+                    let value = self.registers.b;
+                    let new_value = self.subWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::C => {
+                    let value = self.registers.c;
+                    let new_value = self.subWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::D => {
+                    let value = self.registers.d;
+                    let new_value = self.subWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::E => {
+                    let value = self.registers.e;
+                    let new_value = self.subWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::H => {
+                    let value = self.registers.h;
+                    let new_value = self.subWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::L => {
+                    let value = self.registers.l;
+                    let new_value = self.subWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::HLI => {
+                    let value = self.bus.read_byte(self.registers.get_hl());
+                    let new_value = self.subWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::A => {
+                    let value = self.registers.a;
+                    let new_value = self.subWithCarry(value);
+                    self.registers.a = new_value;
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTarget::D8 => {
+                    let value = self.bus.read_byte(self.pc + 1);
+                    let new_value = self.subWithCarry(value);
+                    self.registers.a = new_value;
                     self.pc.wrapping_add(2)
                 }
             },
@@ -606,6 +782,35 @@ impl CPU {
         self.registers.f.subtract = false;
         self.registers.f.carry = did_overflow;
         self.registers.f.half_carry = (operatedRegisterValue & 0xFFF) + (value & 0xFFF) > 0xFFF;
+        new_value
+    }
+
+    fn addWithCarry(&mut self, value: u8) -> u8 {
+        let carry = if self.registers.f.carry { 1 } else { 0 };
+        let (new_value, did_overflow) = self.registers.a.overflowing_add(value + carry);
+        self.registers.f.zero = new_value == 0;
+        self.registers.f.subtract = false;
+        self.registers.f.carry = did_overflow;
+        self.registers.f.half_carry = (self.registers.a & 0xF) + (value & 0xF) + carry > 0xF;
+        new_value
+    }
+
+    fn sub(&mut self, value: u8) -> u8 {
+        let (new_value, did_overflow) = self.registers.a.overflowing_sub(value);
+        self.registers.f.zero = new_value == 0;
+        self.registers.f.subtract = true;
+        self.registers.f.carry = did_overflow;
+        self.registers.f.half_carry = (self.registers.a & 0xF) < (value & 0xF);
+        new_value
+    }
+
+    fn subWithCarry(&mut self, value: u8) -> u8 {
+        let carry = if self.registers.f.carry { 1 } else { 0 };
+        let (new_value, did_overflow) = self.registers.a.overflowing_sub(value + carry);
+        self.registers.f.zero = new_value == 0;
+        self.registers.f.subtract = true;
+        self.registers.f.carry = did_overflow;
+        self.registers.f.half_carry = (self.registers.a & 0xF) < (value & 0xF) + carry;
         new_value
     }
 
