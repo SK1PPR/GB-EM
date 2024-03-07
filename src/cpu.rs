@@ -2,7 +2,8 @@ use std::io::WriterPanicked;
 use std::ops::Add;
 
 use crate::instructions::{
-    ArithmeticTarget, IncDecTarget, Instruction, JumpType, LoadType, RegisterTarget, StackRegisters,
+    ArithmeticTarget, ArithmeticTargetLong, IncDecTarget, Instruction, JumpType, LoadType,
+    RegisterTarget, StackRegisters,
 };
 use crate::memory::MemoryBus;
 use crate::registers::Registers;
@@ -92,7 +93,7 @@ impl CPU {
                     let value = self.bus.read_byte(self.registers.get_hl());
                     let new_value = self.add(value);
                     self.registers.a = new_value;
-                    self.pc.wrapping_add(2)
+                    self.pc.wrapping_add(1)
                 }
                 ArithmeticTarget::A => {
                     let value = self.registers.a;
@@ -104,6 +105,39 @@ impl CPU {
                     let value = self.bus.read_byte(self.pc + 1);
                     let new_value = self.add(value);
                     self.registers.a = new_value;
+                    self.pc.wrapping_add(2)
+                }
+            },
+
+            Instruction::ADDL(target) => match target {
+                ArithmeticTargetLong::BC => {
+                    let value: u16 = self.registers.get_bc();
+                    let new_value: u16 = self.addLong(value, false);
+                    self.registers.set_hl(new_value);
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTargetLong::DE => {
+                    let value: u16 = self.registers.get_de();
+                    let new_value: u16 = self.addLong(value, false);
+                    self.registers.set_hl(new_value);
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTargetLong::HL => {
+                    let value: u16 = self.registers.get_hl();
+                    let new_value: u16 = self.addLong(value, false);
+                    self.registers.set_hl(new_value);
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTargetLong::SP => {
+                    let value: u16 = self.sp;
+                    let new_value: u16 = self.addLong(value, false);
+                    self.registers.set_hl(new_value);
+                    self.pc.wrapping_add(1)
+                }
+                ArithmeticTargetLong::S8 => {
+                    let value: u16 = self.bus.read_byte(self.pc + 1) as u16;
+                    let new_value: u16 = self.addLong(value, true);
+                    self.registers.set_hl(new_value);
                     self.pc.wrapping_add(2)
                 }
             },
@@ -558,6 +592,20 @@ impl CPU {
         self.registers.f.subtract = false;
         self.registers.f.carry = did_overflow;
         self.registers.f.half_carry = (self.registers.a & 0xF) + (value & 0xF) > 0xF;
+        new_value
+    }
+
+    fn addLong(&mut self, value: u16, isSP: bool) -> u16 {
+        let operatedRegisterValue: u16 = if isSP {
+            self.sp
+        } else {
+            self.registers.get_hl()
+        };
+
+        let (new_value, did_overflow) = operatedRegisterValue.overflowing_add(value);
+        self.registers.f.subtract = false;
+        self.registers.f.carry = did_overflow;
+        self.registers.f.half_carry = (operatedRegisterValue & 0xFFF) + (value & 0xFFF) > 0xFFF;
         new_value
     }
 
