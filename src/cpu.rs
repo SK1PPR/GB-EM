@@ -40,8 +40,7 @@ impl CPU {
 
     fn execute(&mut self, instruction: Instruction) -> u16 {
         match instruction {
-            Instruction::NOP => self.pc.wrapping_add(1),
-
+            // JUMP Instructions
             Instruction::JP(test) => {
                 let jump_condition = match test {
                     JumpType::NotZero => !self.registers.f.zero,
@@ -51,6 +50,19 @@ impl CPU {
                     JumpType::Always => true,
                 };
                 self.jump(jump_condition)
+            }
+
+            Instruction::JPL => self.registers.get_hl(),
+
+            Instructions::JR(test) => {
+                let jump_condition = match test {
+                    JumpType::NotZero => !self.registers.f.zero,
+                    JumpType::Zero => self.registers.f.zero,
+                    JumpType::NotCarry => !self.registers.f.carry,
+                    JumpType::Carry => self.registers.f.carry,
+                    JumpType::Always => true,
+                };
+                self.jump_relative(jump_condition)
             }
 
             // addition instructions
@@ -741,16 +753,71 @@ impl CPU {
 
             // RLA instruction
             Instruction::RLA => {
-                self.registers.a = (self.registers.a << 1)
-                    | (if self.registers.f.carry { 0x01 } else { 0x00 });
+                self.registers.a =
+                    (self.registers.a << 1) | (if self.registers.f.carry { 0x01 } else { 0x00 });
                 self.pc.wrapping_add(1)
             }
 
             // RRA instruction
             Instruction::RRA => {
-                self.registers.a = (self.registers.a >> 1)
-                    | (if self.registers.f.carry { 0x80 } else { 0x00 });
+                self.registers.a =
+                    (self.registers.a >> 1) | (if self.registers.f.carry { 0x80 } else { 0x00 });
                 self.pc.wrapping_add(1)
+            }
+
+            Instruction::CALL(test) => {
+                let jump_condition = match test {
+                    JumpType::NotZero => !self.registers.f.zero,
+                    JumpType::Zero => self.registers.f.zero,
+                    JumpType::NotCarry => !self.registers.f.carry,
+                    JumpType::Carry => self.registers.f.carry,
+                    JumpType::Always => true,
+                };
+                self.call(jump_condition) // TODO: Implement call
+            }
+
+            Instruction::RET(test) => {
+                let jump_condition = match test {
+                    JumpType::NotZero => !self.registers.f.zero,
+                    JumpType::Zero => self.registers.f.zero,
+                    JumpType::NotCarry => !self.registers.f.carry,
+                    JumpType::Carry => self.registers.f.carry,
+                    JumpType::Always => true,
+                };
+                self.ret(jump_condition) // TODO: Implement ret
+            }
+
+            Instruction::RETI => {
+                // TODO: Implement reti
+                self.pc.wrapping_add(1)
+            }
+
+            Instruction::RST(value) => {
+                // TODO: Implement rst
+                self.pc
+            }
+
+            // Miscellanoes instructions
+            Instruction::NOP => self.pc.wrapping_add(1),
+
+            Instruction::STOP => {
+                // TODO: Implement stop
+                self.pc
+            }
+
+            Instruction::HALT => {
+                // TODO: Implement halt
+                self.pc
+            }
+
+            Instruction::DI => {
+                // TODO: Implement di
+                self.pc
+            }
+
+            Instruction::EI => {
+                // TODO: Implement ei
+                self.pc
             }
 
             /* Load instructions */
@@ -1318,6 +1385,15 @@ impl CPU {
             (most_significant_byte << 8) | least_significant_byte
         } else {
             self.pc.wrapping_add(3)
+        }
+    }
+
+    fn jump_relative(&self, should_jump: bool) -> u16 {
+        if should_jump {
+            let offset = self.bus.read_byte(self.pc + 1);
+            self.pc.wrapping_add(offset as u16)
+        } else {
+            self.pc.wrapping_add(2)
         }
     }
 
