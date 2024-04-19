@@ -1,4 +1,4 @@
-#![crate_name = "rboy"]
+#![crate_name = "gb_em"]
 #![crate_type = "lib" ]
 
 pub use crate::keypad::KeypadKey;

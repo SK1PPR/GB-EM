@@ -3,5 +3,40 @@
 version = 3
 
 [[package]]
+name = "blip_buf"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "45c136cf50e8d0c47fe415008a6be8b50a9a56a6741fffbe2e580e007eda417d"
+dependencies = [
+ "blip_buf-sys",
+ "libc",
+]
+
+[[package]]
+name = "blip_buf-sys"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b84654178cd24117082f5cb10dbc0580425fc06aa02ae209171fe070cd4522e"
+dependencies = [
+ "cc",
+ "libc",
+]
+
+[[package]]
+name = "cc"
+version = "1.0.94"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17f6e324229dc011159fcc089755d1e2e216a90d43a7dea6853ca740b84f35e7"
+
+[[package]]
 name = "gb-em"
 version = "0.1.0"
+dependencies = [
+ "blip_buf",
+]
+
+[[package]]
+name = "libc"
+version = "0.2.153"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9c198f91728a82281a64e1f4f9eeb25d82cb32a5de251c6bd1b5154d63a8e7bd"
