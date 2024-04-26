@@ -9,6 +9,7 @@ A Gameboy Classic and Gameboy Color emulator written in Rust
 3. You can either run the shell script using `./run.sh ` or run `cargo build --release`
 4. Running the emulator can be done by `cargo run --release` or by changing directory to `target/release`.
 5. You can add this binary to `~/.local/bin/` in linux or  `PATH` in windows.
+6. You can run test roms and sample games added in `/test-roms`. You can run any `.gb` and `.gbc` roms on this emulator. (**Note:** Make sure to extract the ROMs before running).
 
 Then you can explore the ability of the emulator by `gb_em --help`. Which outputs 
 
@@ -81,6 +82,7 @@ Now you can look below for the Keybindings section below.
 - GameBoy Advance support
 - Making the emulator cycle-accurate
 - Adding better support for sound
+- Adding UI support for ROM opening
 
 ## Test mode
 The test mode, activated with the `--test-mode` flag, provides some functionality for running
