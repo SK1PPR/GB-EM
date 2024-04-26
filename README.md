@@ -83,6 +83,7 @@ Now you can look below for the Keybindings section below.
 - Making the emulator cycle-accurate
 - Adding better support for sound
 - Adding UI support for ROM opening
+- Game save and reload
 
 ## Test mode
 The test mode, activated with the `--test-mode` flag, provides some functionality for running
