@@ -16,7 +16,7 @@ Then you can explore the ability of the emulator by `gb_em --help`. Which output
 ```
 A Gameboy Colour emulator written in Rust
 
-Usage: rboy [OPTIONS] <filename>
+Usage: eb_em [OPTIONS] <filename>
 
 Arguments:
   <filename>  Sets the ROM file to load
