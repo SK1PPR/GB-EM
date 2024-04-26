@@ -91,7 +91,6 @@ The test mode, activated with the `--test-mode` flag, provides some functionalit
 
 ## Special thanks to
 
-* https://github.com/mvdnes/rboy.git
 * http://imrannazar.com/GameBoy-Emulation-in-JavaScript:-The-CPU
 * http://bgb.bircd.org/pandocs.htm
 * https://github.com/alexcrichton/jba (The Rust branch)
